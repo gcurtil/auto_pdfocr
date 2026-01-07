@@ -75,7 +75,15 @@ def run_once(
         logger.info("No new files to process.")
         return
 
-    logger.info(f"Found {len(files_to_process)} new files to process.")
+    # Apply limit
+    total_found: int = len(files_to_process)
+    if args.limit > 0:
+        files_to_process = files_to_process[: args.limit]
+
+    logger.info(
+        f"Found {total_found} new files. Processing {len(files_to_process)} "
+        f"(limit: {args.limit})."
+    )
 
     for pdf_path, file_hash in files_to_process:
         success: bool = processor.process(pdf_path, dry_run=args.dry_run)
@@ -117,6 +125,12 @@ def main() -> None:
         type=int,
         default=60,
         help="Polling interval in seconds (daemon mode only)",
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=5,
+        help="Maximum number of files to process in one iteration (default: 5)",
     )
 
     args: argparse.Namespace = parser.parse_args()

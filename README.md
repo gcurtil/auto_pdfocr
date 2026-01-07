@@ -52,12 +52,12 @@ pip install ocrmypdf
 
 ## Usage
 
-The tool is run via the `main.py` script.
+The tool is run using `uv`.
 
-### Basic Command
+### Basic Command (One-off)
 
 ```bash
-python main.py --input-dir /path/to/input --output-dir /path/to/output
+uv run main.py --input-dir /path/to/input --output-dir /path/to/output
 ```
 
 ### Arguments
@@ -71,25 +71,26 @@ python main.py --input-dir /path/to/input --output-dir /path/to/output
 | `--overwrite` | Force reprocessing even if the output file already exists. | `False` |
 | `--daemon` | Run continuously in a loop. | `False` |
 | `--interval` | Polling interval in seconds (only for daemon mode). | `60` |
+| `--limit` | Maximum number of files to process in one iteration. | `5` |
 
 ### Examples
 
 **1. One-off run:**
 Scan the `inbox` directory and save OCR'd files to `archive`.
 ```bash
-python main.py --input-dir ./inbox --output-dir ./archive
+uv run main.py --input-dir ./inbox --output-dir ./archive
 ```
 
 **2. Daemon mode:**
 Run continuously, checking for new files every 5 minutes (300 seconds).
 ```bash
-python main.py --input-dir ./inbox --output-dir ./archive --daemon --interval 300
+uv run main.py --input-dir ./inbox --output-dir ./archive --daemon --interval 300
 ```
 
 **3. Dry run:**
 Check which files would be processed without actually doing it.
 ```bash
-python main.py --input-dir ./inbox --output-dir ./archive --dry-run
+uv run main.py --input-dir ./inbox --output-dir ./archive --dry-run
 ```
 
 ## Project Structure
