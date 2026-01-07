@@ -103,6 +103,9 @@ def run_once(
         logger.info("No new files to process.")
         return
 
+    # Apply deterministic ordering before enforcing limits
+    files_to_process.sort(key=lambda item: item[0].name)
+
     # Apply limit
     total_found: int = len(files_to_process)
     if args.limit > 0:
