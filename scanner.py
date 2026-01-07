@@ -37,26 +37,47 @@ class Scanner:
         return list(self.input_dir.glob("*.pdf"))
 
     @staticmethod
-    def calculate_hash(file_path: Path) -> str:
+    def calculate_hash(
+        file_path: Path, retries: int = 0, retry_delay: int = 5
+    ) -> str:
         """
-        Calculates the SHA-256 hash of a file.
+        Calculates the SHA-256 hash of a file with optional retries.
 
         Parameters
         ----------
         file_path : Path
             The path to the file to hash.
+        retries : int, optional
+            Number of times to retry reading the file on OSError (default is 0).
+        retry_delay : int, optional
+            Seconds to wait between retries (default is 5).
 
         Returns
         -------
         str
             The hexadecimal representation of the SHA-256 hash.
+
+        Raises
+        ------
+        OSError
+            If the file cannot be read after all retry attempts.
         """
-        sha256_hash = hashlib.sha256()
-        with open(file_path, "rb") as f:
-            # Read in chunks to handle large files
-            for byte_block in iter(lambda: f.read(4096), b""):
-                sha256_hash.update(byte_block)
-        return sha256_hash.hexdigest()
+        import time
+
+        attempt = 0
+        while True:
+            sha256_hash = hashlib.sha256()
+            try:
+                with open(file_path, "rb") as f:
+                    # Read in chunks to handle large files
+                    for byte_block in iter(lambda: f.read(4096), b""):
+                        sha256_hash.update(byte_block)
+                return sha256_hash.hexdigest()
+            except OSError as e:
+                attempt += 1
+                if attempt > retries:
+                    raise e
+                time.sleep(retry_delay)
 
     def scan(self) -> List[Tuple[Path, str]]:
         """

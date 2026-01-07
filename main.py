@@ -53,7 +53,14 @@ def run_once(
         return
 
     for pdf_path in pdf_files:
-        file_hash: str = scanner.calculate_hash(pdf_path)
+        try:
+            file_hash: str = scanner.calculate_hash(
+                pdf_path, retries=args.retries, retry_delay=args.retry_delay
+            )
+        except OSError as e:
+            logger.error(f"Could not read {pdf_path.name} after retries: {e}. Skipping.")
+            continue
+
         output_path: Path = processor.get_output_path(pdf_path)
 
         # Check DB
@@ -131,6 +138,18 @@ def main() -> None:
         type=int,
         default=5,
         help="Maximum number of files to process in one iteration (default: 5)",
+    )
+    parser.add_argument(
+        "--retries",
+        type=int,
+        default=3,
+        help="Number of retries for file I/O errors (default: 3)",
+    )
+    parser.add_argument(
+        "--retry-delay",
+        type=int,
+        default=5,
+        help="Delay in seconds between retries (default: 5)",
     )
 
     args: argparse.Namespace = parser.parse_args()

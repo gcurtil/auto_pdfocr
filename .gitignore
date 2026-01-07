@@ -8,6 +8,11 @@ venv/
 *.txt
 .DS_Store
 
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
 # uv
 uv.lock
 .python-version

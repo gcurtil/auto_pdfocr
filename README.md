@@ -72,6 +72,8 @@ uv run main.py --input-dir /path/to/input --output-dir /path/to/output
 | `--daemon` | Run continuously in a loop. | `False` |
 | `--interval` | Polling interval in seconds (only for daemon mode). | `60` |
 | `--limit` | Maximum number of files to process in one iteration. | `5` |
+| `--retries` | Number of retries for file I/O errors. | `3` |
+| `--retry-delay` | Delay in seconds between retries. | `5` |
 
 ### Examples
 
@@ -104,3 +106,36 @@ uv run main.py --input-dir ./inbox --output-dir ./archive --dry-run
 ## Database
 
 The tool maintains a SQLite database (`processed_files.db` by default) to keep track of processed files. This ensures that if you move or rename a source file that has already been processed, the tool will recognize it by its content hash and skip it.
+
+## Troubleshooting
+
+### Rclone Mount Issues (Input/Output Error)
+
+If you encounter `OSError: [Errno 5] Input/output error` when running the tool on rclone-mounted directories, it often indicates that the rclone session has expired or is unauthenticated.
+
+**Symptoms:**
+- `file` command returns `Input/output error`.
+- `systemctl --user status rclone-pdf-input.service` shows `ERROR : IO error: unauthenticated: Unauthenticated`.
+
+**Solution:**
+You need to re-authenticate your rclone remote:
+
+1.  Run the rclone config command:
+    ```bash
+    rclone config
+    ```
+2.  Select the remote used for the mounts (e.g., `onedrive_gcurtil`).
+3.  Choose the option to **Edit** or **Reconnect** the remote.
+4.  Follow the browser-based authentication flow.
+5.  Restart the mount services:
+    ```bash
+    systemctl --user restart rclone-pdf-input.service rclone-pdf-output.service
+    ```
+
+### Restarting Services
+
+If you need to restart the rclone mount services for any reason (e.g., after re-authentication or configuration changes), use the following command:
+
+```bash
+systemctl --user restart rclone-pdf-input.service rclone-pdf-output.service
+```
