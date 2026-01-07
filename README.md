@@ -95,6 +95,12 @@ Check which files would be processed without actually doing it.
 uv run main.py --input-dir ./inbox --output-dir ./archive --dry-run
 ```
 
+**4. Dry run with 5-file batch:**
+Simulate processing up to five files from the mounted directories.
+```bash
+uv run main.py --input-dir ~/mnt/pdf_input/ --output-dir ~/mnt/pdf_output/ --dry-run --limit 5
+```
+
 ## Project Structure
 
 - `main.py`: Entry point and orchestration logic.
