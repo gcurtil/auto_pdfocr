@@ -1,8 +1,13 @@
 __pycache__/
 *.py[cod]
 *$py.class
+.venv/
 venv/
 .env
 *.pdf
 *.txt
 .DS_Store
+
+# uv
+uv.lock
+.python-version
