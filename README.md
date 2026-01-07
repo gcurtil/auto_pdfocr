@@ -107,6 +107,20 @@ uv run main.py --input-dir ./inbox --output-dir ./archive --dry-run
 
 The tool maintains a SQLite database (`processed_files.db` by default) to keep track of processed files. This ensures that if you move or rename a source file that has already been processed, the tool will recognize it by its content hash and skip it.
 
+Each record contains the following fields:
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | TEXT (ULID) | Time-sortable unique identifier generated with `ulid` |
+| `filename` | TEXT | Name of the original PDF file |
+| `input_dir` | TEXT | Directory that was scanned for the file |
+| `output_dir` | TEXT | Directory where the OCR output was written |
+| `file_hash` | TEXT | SHA-256 hash used to deduplicate inputs |
+| `input_size` | INTEGER | Size (bytes) of the input PDF when processed |
+| `output_size` | INTEGER | Size (bytes) of the OCR output |
+| `duration` | REAL | Processing time in seconds for the OCR step |
+| `processed_at` | TIMESTAMP | Timestamp when the record was inserted |
+
 ## Troubleshooting
 
 ### Rclone Mount Issues (Input/Output Error)

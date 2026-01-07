@@ -6,4 +6,5 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "ocrmypdf>=16.13.0",
-]
+    "ulid-py>=1.1.0",
+  ]

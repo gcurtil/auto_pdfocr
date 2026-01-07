@@ -27,6 +27,27 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+def _get_file_size(path: Path) -> int | None:
+    """
+    Safely fetches the size of a file in bytes.
+
+    Parameters
+    ----------
+    path : Path
+        File whose size should be read.
+
+    Returns
+    -------
+    int or None
+        Size in bytes if available; otherwise ``None`` when the stat call fails.
+    """
+    try:
+        return path.stat().st_size
+    except OSError as exc:  # noqa: BLE001
+        logger.warning(f"Unable to read size for {path}: {exc}")
+        return None
+
+
 def run_once(
     args: argparse.Namespace, db: Database, scanner: Scanner, processor: Processor
 ) -> None:
@@ -93,9 +114,19 @@ def run_once(
     )
 
     for pdf_path, file_hash in files_to_process:
-        success: bool = processor.process(pdf_path, dry_run=args.dry_run)
-        if success and not args.dry_run:
-            db.mark_processed(pdf_path.name, file_hash)
+        input_size = _get_file_size(pdf_path)
+        result = processor.process(pdf_path, dry_run=args.dry_run)
+
+        if result.success and not args.dry_run:
+            db.mark_processed(
+                filename=pdf_path.name,
+                input_dir=str(scanner.input_dir),
+                output_dir=str(processor.output_dir),
+                file_hash=file_hash,
+                input_size=input_size,
+                output_size=result.output_size,
+                duration=result.duration,
+            )
 
 
 def main() -> None:

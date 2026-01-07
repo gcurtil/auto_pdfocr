@@ -5,13 +5,26 @@ This module provides the Processor class to execute OCR on PDF files
 using the ocrmypdf library.
 """
 
+from __future__ import annotations
+
 import logging
+import time
+from dataclasses import dataclass
 from pathlib import Path
 
 import ocrmypdf
 
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(slots=True)
+class ProcessResult:
+    """Represents the outcome of processing a single PDF file."""
+
+    success: bool
+    duration: float
+    output_size: int | None
 
 
 class Processor:
@@ -44,7 +57,7 @@ class Processor:
         """
         return self.output_dir / f"ocr_{input_path.name}"
 
-    def process(self, input_path: Path, dry_run: bool = False) -> bool:
+    def process(self, input_path: Path, dry_run: bool = False) -> ProcessResult:
         """
         Runs OCR on the input file and saves it to the output directory.
 
@@ -57,30 +70,35 @@ class Processor:
 
         Returns
         -------
-        bool
-            True if processing was successful (or simulated), False otherwise.
+        ProcessResult
+            A dataclass describing whether processing succeeded, how long it
+            took, and the size of the resulting file (if applicable).
         """
         output_path: Path = self.get_output_path(input_path)
 
         if dry_run:
             logger.info(f"[DRY-RUN] Would process {input_path} -> {output_path}")
-            return True
+            return ProcessResult(success=True, duration=0.0, output_size=None)
 
+        start_time = time.perf_counter()
         try:
             logger.info(f"Processing {input_path}...")
-            # ocrmypdf.ocr returns an exit code or raises an exception
-            # We use some common flags: deskew, clean, rotate-pages
             ocrmypdf.ocr(
                 input_path,
                 output_path,
                 deskew=True,
                 rotate_pages=True,
-                # skip_text=True, # Use this if you only want to OCR images and keep existing text
-                force_ocr=True,  # Use this if you want to force OCR even if text exists
+                force_ocr=True,
                 progress_bar=False,
             )
-            logger.info(f"Successfully processed {input_path}")
-            return True
-        except Exception as e:
-            logger.error(f"Error processing {input_path}: {e}")
-            return False
+            duration = time.perf_counter() - start_time
+            try:
+                output_size = output_path.stat().st_size
+            except OSError:
+                output_size = None
+            logger.info(f"Successfully processed {input_path} in {duration:.2f}s")
+            return ProcessResult(True, duration, output_size)
+        except Exception as exc:  # noqa: BLE001
+            duration = time.perf_counter() - start_time
+            logger.error(f"Error processing {input_path}: {exc}")
+            return ProcessResult(False, duration, None)
