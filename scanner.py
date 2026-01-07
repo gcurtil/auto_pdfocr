@@ -1,6 +1,14 @@
+"""
+File scanning and hashing logic for the Auto PDF OCR tool.
+
+This module provides the Scanner class to identify PDF files in a directory
+and calculate their SHA-256 content hashes.
+"""
+
 import hashlib
 from pathlib import Path
 from typing import List, Tuple
+
 
 class Scanner:
     """
@@ -11,8 +19,9 @@ class Scanner:
     input_dir : str
         The path to the directory to scan.
     """
-    def __init__(self, input_dir: str):
-        self.input_dir = Path(input_dir)
+
+    def __init__(self, input_dir: str) -> None:
+        self.input_dir: Path = Path(input_dir)
 
     def get_pdf_files(self) -> List[Path]:
         """
@@ -58,7 +67,7 @@ class Scanner:
         List[Tuple[Path, str]]
             A list of tuples, where each tuple contains the file path and its SHA-256 hash.
         """
-        results = []
+        results: List[Tuple[Path, str]] = []
         for pdf_file in self.get_pdf_files():
             file_hash = self.calculate_hash(pdf_file)
             results.append((pdf_file, file_hash))

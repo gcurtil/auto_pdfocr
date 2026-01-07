@@ -1,8 +1,18 @@
-import ocrmypdf
-from pathlib import Path
+"""
+OCR processing logic for the Auto PDF OCR tool.
+
+This module provides the Processor class to execute OCR on PDF files
+using the ocrmypdf library.
+"""
+
 import logging
+from pathlib import Path
+
+import ocrmypdf
+
 
 logger = logging.getLogger(__name__)
+
 
 class Processor:
     """
@@ -13,8 +23,9 @@ class Processor:
     output_dir : str
         The directory where processed files will be saved.
     """
-    def __init__(self, output_dir: str):
-        self.output_dir = Path(output_dir)
+
+    def __init__(self, output_dir: str) -> None:
+        self.output_dir: Path = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
     def get_output_path(self, input_path: Path) -> Path:
@@ -49,8 +60,8 @@ class Processor:
         bool
             True if processing was successful (or simulated), False otherwise.
         """
-        output_path = self.get_output_path(input_path)
-        
+        output_path: Path = self.get_output_path(input_path)
+
         if dry_run:
             logger.info(f"[DRY-RUN] Would process {input_path} -> {output_path}")
             return True
@@ -60,13 +71,13 @@ class Processor:
             # ocrmypdf.ocr returns an exit code or raises an exception
             # We use some common flags: deskew, clean, rotate-pages
             ocrmypdf.ocr(
-                input_path, 
-                output_path, 
-                deskew=True, 
+                input_path,
+                output_path,
+                deskew=True,
                 rotate_pages=True,
                 # skip_text=True, # Use this if you only want to OCR images and keep existing text
-                force_ocr=True,   # Use this if you want to force OCR even if text exists
-                progress_bar=False
+                force_ocr=True,  # Use this if you want to force OCR even if text exists
+                progress_bar=False,
             )
             logger.info(f"Successfully processed {input_path}")
             return True
