@@ -7,6 +7,24 @@ set -euo pipefail
 
 SYSTEMD_USER_DIR="/home/gui/.config/systemd/user"
 
+# rclone mount requires FUSE userspace helpers (fusermount or fusermount3).
+if ! command -v fusermount >/dev/null 2>&1 && ! command -v fusermount3 >/dev/null 2>&1; then
+  echo "ERROR: FUSE helpers not found (fusermount / fusermount3). rclone cannot mount."
+  echo "Install FUSE (example for Debian/Ubuntu):"
+  echo "  sudo apt-get update && sudo apt-get install -y fuse3"
+  echo "Then ensure your user can use FUSE and re-run this script."
+  exit 1
+fi
+
+if [ ! -e /dev/fuse ]; then
+  echo "ERROR: /dev/fuse not found. The kernel FUSE module is not loaded or FUSE is not available."
+  echo "Try (requires admin):"
+  echo "  sudo modprobe fuse"
+  echo "Then verify:"
+  echo "  ls -la /dev/fuse"
+  exit 1
+fi
+
 INPUT_REMOTE="onedrive_gcurtil:ds4_scandocs"
 OUTPUT_REMOTE="onedrive_gcurtil:ds4_scandocs_ocr"
 
@@ -40,7 +58,7 @@ ExecStart=/usr/bin/rclone mount onedrive_gcurtil:ds4_scandocs /home/gui/mnt/pdf_
   --umask 022 \
   --log-level INFO
 
-ExecStop=/bin/fusermount -u /home/gui/mnt/pdf_input
+ExecStop=/bin/sh -lc 'fusermount -u /home/gui/mnt/pdf_input || fusermount3 -u /home/gui/mnt/pdf_input || true'
 Restart=on-failure
 RestartSec=5
 TimeoutStopSec=30
@@ -70,7 +88,7 @@ ExecStart=/usr/bin/rclone mount onedrive_gcurtil:ds4_scandocs_ocr /home/gui/mnt/
   --umask 022 \
   --log-level INFO
 
-ExecStop=/bin/fusermount -u /home/gui/mnt/pdf_output
+ExecStop=/bin/sh -lc 'fusermount -u /home/gui/mnt/pdf_output || fusermount3 -u /home/gui/mnt/pdf_output || true'
 Restart=on-failure
 RestartSec=5
 TimeoutStopSec=30
@@ -83,7 +101,13 @@ systemctl --user daemon-reload
 systemctl --user enable --now "${INPUT_UNIT}" "${OUTPUT_UNIT}"
 
 # Start these user services at boot even when logged out.
-loginctl enable-linger gui
+# Enabling lingering typically requires admin privileges.
+if loginctl enable-linger gui 2>/dev/null; then
+  echo "Enabled lingering for user gui."
+else
+  echo "Could not enable lingering as the current user. Run this once with admin privileges:"
+  echo "  sudo loginctl enable-linger gui"
+fi
 
 echo "Installed and started: ${INPUT_UNIT}, ${OUTPUT_UNIT}"
 echo "Mountpoints: ${INPUT_MOUNT} (RO), ${OUTPUT_MOUNT} (RW)"

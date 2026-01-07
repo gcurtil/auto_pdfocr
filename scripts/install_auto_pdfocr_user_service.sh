@@ -62,7 +62,12 @@ systemctl --user daemon-reload
 systemctl --user enable --now "${UNIT}"
 
 # Start this user service at boot even when logged out.
-loginctl enable-linger gui
+# Enabling lingering typically requires admin privileges.
+if loginctl enable-linger gui 2>/dev/null; then
+  echo "Enabled lingering for user gui."
+else
+  echo "Could not enable lingering as the current user. Run this once with admin privileges:"
+  echo "  sudo loginctl enable-linger gui"
+fi
 
 echo "Installed and started: ${UNIT}"
-
