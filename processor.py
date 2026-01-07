@@ -5,16 +5,50 @@ import logging
 logger = logging.getLogger(__name__)
 
 class Processor:
+    """
+    Handles the OCR processing of PDF files.
+
+    Parameters
+    ----------
+    output_dir : str
+        The directory where processed files will be saved.
+    """
     def __init__(self, output_dir: str):
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
     def get_output_path(self, input_path: Path) -> Path:
-        """Constructs the output path with 'ocr_' prefix."""
+        """
+        Constructs the output path with 'ocr_' prefix.
+
+        Parameters
+        ----------
+        input_path : Path
+            The path of the input file.
+
+        Returns
+        -------
+        Path
+            The corresponding output path.
+        """
         return self.output_dir / f"ocr_{input_path.name}"
 
     def process(self, input_path: Path, dry_run: bool = False) -> bool:
-        """Runs OCR on the input file and saves it to the output directory."""
+        """
+        Runs OCR on the input file and saves it to the output directory.
+
+        Parameters
+        ----------
+        input_path : Path
+            The path to the PDF file to process.
+        dry_run : bool, optional
+            If True, simulates the processing without executing it (default is False).
+
+        Returns
+        -------
+        bool
+            True if processing was successful (or simulated), False otherwise.
+        """
         output_path = self.get_output_path(input_path)
         
         if dry_run:

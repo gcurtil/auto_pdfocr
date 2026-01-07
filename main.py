@@ -16,7 +16,20 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 def run_once(args, db, scanner, processor):
-    """Performs a single scan and process cycle."""
+    """
+    Performs a single scan and process cycle.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Parsed command-line arguments.
+    db : Database
+        The database instance.
+    scanner : Scanner
+        The scanner instance.
+    processor : Processor
+        The processor instance.
+    """
     logger.info(f"Scanning {args.input_dir}...")
     files_to_process = []
     
@@ -53,6 +66,10 @@ def run_once(args, db, scanner, processor):
             db.mark_processed(pdf_path.name, file_hash)
 
 def main():
+    """
+    Main entry point for the Auto PDF OCR tool.
+    Parses arguments and orchestrates the scanning and processing loop.
+    """
     parser = argparse.ArgumentParser(description="Auto PDF OCR Tool")
     parser.add_argument("--input-dir", required=True, help="Directory to scan for PDF files")
     parser.add_argument("--output-dir", required=True, help="Directory to save OCR'd PDF files")
